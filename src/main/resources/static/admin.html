@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">PZ Store Admin</div>
+</header>
+
+<section class="featured">
+
+    <h1>Admin Dashboard</h1>
+
+    <!-- Add Product -->
+    <h2>Add New Product</h2>
+
+    <form id="productForm">
+        <input type="text" id="name" placeholder="Product Name" required>
+
+        <textarea id="description" placeholder="Description" required></textarea>
+
+        <input type="number" id="price" placeholder="Price" required>
+
+        <input type="number" id="stock" placeholder="Stock" required>
+
+        <input type="file" id="image" accept="image/*" required>
+
+        <button type="submit" class="btn">Add Product</button>
+    </form>
+
+    <hr style="margin:30px 0;">
+
+    <!-- Manage Products -->
+    <h2>Manage Products</h2>
+
+    <div id="productsContainer"></div>
+
+    <hr style="margin:30px 0;">
+
+    <!-- Orders Dashboard -->
+    <h2>Orders Dashboard</h2>
+
+    <div id="ordersContainer"></div>
+
+</section>
+
+<!-- Edit Product Modal -->
+<div id="editModal"
+     style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;">
+
+    <div style="background:white;padding:20px;border-radius:12px;width:400px;max-width:90%;">
+
+        <h2>Edit Product</h2>
+
+        <input type="hidden" id="editId">
+
+        <input type="text" id="editName" placeholder="Product Name">
+
+        <textarea id="editDescription" placeholder="Description"></textarea>
+
+        <input type="number" id="editPrice" placeholder="Price">
+
+        <input type="number" id="editStock" placeholder="Stock">
+
+        <div style="margin-top:15px;display:flex;gap:10px;">
+            <button class="btn" onclick="saveProduct()">Save</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
+
+    </div>
+</div>
+
+<script src="/js/admin.js"></script>
+
+</body>
+</html>
