@@ -1,19 +1,23 @@
+// ======================================================
+// ADMIN.JS
+// ======================================================
+
+const PRODUCT_API = "/api/products";
+const ORDER_API = "/api/orders";
+
 // ----------------------
 // Security Check
 // ----------------------
+
 if (sessionStorage.getItem("admin") !== "true") {
     window.location.href = "/admin-login.html";
 }
 
-// ----------------------
-// API URLs
-// ----------------------
-const ORDER_API = "http://localhost:8080/api/orders";
-const PRODUCT_API = "http://localhost:8080/api/products";
 
 // ----------------------
 // Upload Image
 // ----------------------
+
 async function uploadImage(file) {
 
     const formData = new FormData();
@@ -24,216 +28,470 @@ async function uploadImage(file) {
         body: formData
     });
 
+    if (!response.ok) {
+        throw new Error("Image upload failed");
+    }
+
     return await response.text();
 }
+
 
 // ----------------------
 // Add Product
 // ----------------------
-document.getElementById("productForm").addEventListener("submit", async function (e) {
 
-    e.preventDefault();
+const productForm = document.getElementById("productForm");
 
-    const imageFile = document.getElementById("image").files[0];
+if (productForm) {
 
-    if (!imageFile) {
-        alert("Please select an image.");
-        return;
-    }
+    productForm.addEventListener("submit", async function (e) {
 
-    const imageUrl = await uploadImage(imageFile);
+        e.preventDefault();
 
-    const product = {
-        name: document.getElementById("name").value,
-        description: document.getElementById("description").value,
-        price: parseFloat(document.getElementById("price").value),
-        stock: parseInt(document.getElementById("stock").value),
-        imageUrl: imageUrl
-    };
+        try {
 
-    const response = await fetch(PRODUCT_API, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(product)
+            const imageFile =
+                document.getElementById("image").files[0];
+
+            if (!imageFile) {
+                alert("Please select an image.");
+                return;
+            }
+
+            const imageUrl = await uploadImage(imageFile);
+
+            const product = {
+
+                name: document.getElementById("name").value,
+
+                description:
+                document.getElementById("description").value,
+
+                price:
+                    parseFloat(
+                        document.getElementById("price").value
+                    ),
+
+                stock:
+                    parseInt(
+                        document.getElementById("stock").value
+                    ),
+
+                imageUrl: imageUrl
+            };
+
+            const response = await fetch(PRODUCT_API, {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify(product)
+            });
+
+            if (response.ok) {
+
+                alert("Product Added Successfully!");
+
+                productForm.reset();
+
+                loadProducts();
+
+            } else {
+
+                alert("Failed to Add Product.");
+            }
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert("Server error while adding product.");
+        }
     });
+}
 
-    if (response.ok) {
-        alert("Product Added Successfully!");
-        document.getElementById("productForm").reset();
-        loadProducts();
-    } else {
-        alert("Failed to Add Product.");
-    }
-});
 
 // ----------------------
 // Load Products
 // ----------------------
+
 async function loadProducts() {
 
-    const response = await fetch(PRODUCT_API);
-    const products = await response.json();
+    const container =
+        document.getElementById("productsContainer");
 
-    const container = document.getElementById("productsContainer");
-    container.innerHTML = "";
+    if (!container) return;
 
-    products.forEach(product => {
+    try {
 
-        container.innerHTML += `
-            <div class="product-card">
+        const response = await fetch(PRODUCT_API);
 
-                <img src="${product.imageUrl}" alt="${product.name}">
+        if (!response.ok) {
+            throw new Error("Failed to fetch products");
+        }
 
-                <h3>${product.name}</h3>
+        const products = await response.json();
 
-                <p>${product.description}</p>
+        container.innerHTML = "";
 
-                <h2>₹${product.price}</h2>
+        if (products.length === 0) {
 
-                <p>Stock: ${product.stock}</p>
+            container.innerHTML =
+                "<p>No products available.</p>";
 
-                <button onclick="editProduct(${product.id})">
-                    Edit
-                </button>
+            return;
+        }
 
-                <button onclick="deleteProduct(${product.id})"
+        products.forEach(product => {
+
+            container.innerHTML += `
+
+                <div class="product-card">
+
+                    <img
+                        src="${product.imageUrl}"
+                        alt="${product.name}"
+                    >
+
+                    <h3>${product.name}</h3>
+
+                    <p>${product.description}</p>
+
+                    <h2>₹${product.price}</h2>
+
+                    <p>Stock: ${product.stock}</p>
+
+                    <button
+                        onclick="editProduct(${product.id})">
+                        Edit
+                    </button>
+
+                    <button
+                        onclick="deleteProduct(${product.id})"
                         style="background:red;margin-top:8px;">
-                    Delete
-                </button>
+                        Delete
+                    </button>
 
-            </div>
-        `;
-    });
+                </div>
+            `;
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        container.innerHTML =
+            "<p>Failed to load products.</p>";
+    }
 }
+
 
 // ----------------------
 // Delete Product
 // ----------------------
+
 async function deleteProduct(id) {
 
-    if (!confirm("Delete this product?")) return;
+    if (!confirm("Delete this product?")) {
+        return;
+    }
 
-    await fetch(`${PRODUCT_API}/${id}`, {
-        method: "DELETE"
-    });
+    try {
 
-    loadProducts();
+        const response = await fetch(
+            `${PRODUCT_API}/${id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Delete failed");
+        }
+
+        alert("Product deleted successfully.");
+
+        loadProducts();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Failed to delete product.");
+    }
 }
+
 
 // ----------------------
-// Edit Product (Next Step)
+// Edit Product
 // ----------------------
-async function editProduct(id){
 
-    const response = await fetch(`${PRODUCT_API}`);
+async function editProduct(id) {
 
-    const products = await response.json();
+    try {
 
-    const product = products.find(p => p.id === id);
+        const response =
+            await fetch(PRODUCT_API);
 
-    if(!product) return;
+        const products =
+            await response.json();
 
-    document.getElementById("editId").value = product.id;
-    document.getElementById("editName").value = product.name;
-    document.getElementById("editDescription").value = product.description;
-    document.getElementById("editPrice").value = product.price;
-    document.getElementById("editStock").value = product.stock;
+        const product =
+            products.find(p => p.id === id);
 
-    document.getElementById("editModal").style.display = "flex";
+        if (!product) {
+            alert("Product not found.");
+            return;
+        }
+
+        document.getElementById("editId").value =
+            product.id;
+
+        document.getElementById("editName").value =
+            product.name;
+
+        document.getElementById("editDescription").value =
+            product.description;
+
+        document.getElementById("editPrice").value =
+            product.price;
+
+        document.getElementById("editStock").value =
+            product.stock;
+
+        document.getElementById("editModal").style.display =
+            "flex";
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Failed to load product.");
+    }
 }
-function closeModal(){
 
-    document.getElementById("editModal").style.display = "none";
+
+// ----------------------
+// Close Modal
+// ----------------------
+
+function closeModal() {
+
+    document.getElementById("editModal").style.display =
+        "none";
 }
-async function saveProduct(){
 
-    const id = document.getElementById("editId").value;
 
-    const response = await fetch(`${PRODUCT_API}/${id}`,{
+// ----------------------
+// Save Product
+// ----------------------
 
-        method:"PUT",
+async function saveProduct() {
 
-        headers:{
-            "Content-Type":"application/json"
-        },
+    const id =
+        document.getElementById("editId").value;
 
-        body:JSON.stringify({
+    try {
 
-            name:document.getElementById("editName").value,
-            description:document.getElementById("editDescription").value,
-            price:Number(document.getElementById("editPrice").value),
-            stock:Number(document.getElementById("editStock").value),
-            imageUrl:""
-        })
-    });
+        const response = await fetch(
+            `${PRODUCT_API}/${id}`,
+            {
 
-    if(response.ok){
+                method: "PUT",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    name:
+                    document.getElementById("editName").value,
+
+                    description:
+                    document.getElementById(
+                        "editDescription"
+                    ).value,
+
+                    price:
+                        Number(
+                            document.getElementById(
+                                "editPrice"
+                            ).value
+                        ),
+
+                    stock:
+                        Number(
+                            document.getElementById(
+                                "editStock"
+                            ).value
+                        ),
+
+                    imageUrl:
+                        document.getElementById(
+                            "editImageUrl"
+                        )?.value || ""
+                })
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Update failed");
+        }
 
         alert("Product Updated!");
 
         closeModal();
 
         loadProducts();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Failed to update product.");
     }
 }
 
-// ----------------------
-// Load Orders
-// ----------------------
+
+// ======================================================
+// LOAD ORDERS
+// ======================================================
+
 async function loadOrders() {
 
-    const response = await fetch(ORDER_API);
-    const orders = await response.json();
+    const container =
+        document.getElementById("ordersContainer");
 
-    const container = document.getElementById("ordersContainer");
-    container.innerHTML = "";
+    if (!container) return;
 
-    orders.forEach(order => {
+    try {
 
-        container.innerHTML += `
-            <div class="product-card">
+        const response =
+            await fetch(ORDER_API);
 
-                <h3>Order #${order.id}</h3>
+        if (!response.ok) {
+            throw new Error("Failed to load orders");
+        }
 
-                <p><strong>Name:</strong> ${order.customer.fullName}</p>
+        const orders =
+            await response.json();
 
-                <p><strong>Phone:</strong> ${order.customer.phone}</p>
+        container.innerHTML = "";
 
-                <p><strong>City:</strong> ${order.customer.city}</p>
+        if (orders.length === 0) {
 
-                <p><strong>Total:</strong> ₹${order.totalAmount}</p>
+            container.innerHTML =
+                "<p>No orders available.</p>";
 
-                <p><strong>Status:</strong> ${order.orderStatus}</p>
+            return;
+        }
 
-                <button onclick="changeStatus(${order.id}, 'Shipped')">
-                    Mark Shipped
-                </button>
+        orders.forEach(order => {
 
-                <button onclick="changeStatus(${order.id}, 'Delivered')">
-                    Mark Delivered
-                </button>
+            container.innerHTML += `
 
-            </div>
-        `;
-    });
+                <div class="product-card">
+
+                    <h3>Order #${order.id}</h3>
+
+                    <p>
+                        <strong>Name:</strong>
+                        ${order.customer.fullName}
+                    </p>
+
+                    <p>
+                        <strong>Phone:</strong>
+                        ${order.customer.phone}
+                    </p>
+
+                    <p>
+                        <strong>City:</strong>
+                        ${order.customer.city}
+                    </p>
+
+                    <p>
+                        <strong>Total:</strong>
+                        ₹${order.totalAmount}
+                    </p>
+
+                    <p>
+                        <strong>Status:</strong>
+                        ${order.orderStatus}
+                    </p>
+
+                    <button
+                        onclick="changeStatus(
+                            ${order.id},
+                            'Shipped'
+                        )">
+                        Mark Shipped
+                    </button>
+
+                    <button
+                        onclick="changeStatus(
+                            ${order.id},
+                            'Delivered'
+                        )">
+                        Mark Delivered
+                    </button>
+
+                </div>
+            `;
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        container.innerHTML =
+            "<p>Failed to load orders.</p>";
+    }
 }
+
 
 // ----------------------
 // Change Order Status
 // ----------------------
+
 async function changeStatus(id, status) {
 
-    await fetch(`${ORDER_API}/${id}/${status}`, {
-        method: "PUT"
-    });
+    try {
 
-    loadOrders();
+        const response =
+            await fetch(
+                `${ORDER_API}/${id}/${status}`,
+                {
+                    method: "PUT"
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error("Status update failed");
+        }
+
+        loadOrders();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Failed to update order status.");
+    }
 }
+
 
 // ----------------------
 // Initial Load
 // ----------------------
-loadProducts();
-loadOrders();
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    loadProducts();
+
+    loadOrders();
+
+});

@@ -1,28 +1,77 @@
-document.getElementById("loginForm").addEventListener("submit", async(e)=>{
+// ======================================================
+// ADMIN LOGIN
+// ======================================================
 
-    e.preventDefault();
+const ADMIN_LOGIN_API = "/api/admin/login";
 
-    const response=await fetch("http://localhost:8080/api/admin/login",{
+const loginForm =
+    document.getElementById("loginForm");
 
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
+if (loginForm) {
 
-            username:document.getElementById("username").value,
-            password:document.getElementById("password").value
-        })
-    });
+    loginForm.addEventListener(
+        "submit",
+        async function (e) {
 
-    const result=await response.text();
+            e.preventDefault();
 
-    if(result==="SUCCESS"){
+            const username =
+                document.getElementById("username").value;
 
-        sessionStorage.setItem("admin","true");
+            const password =
+                document.getElementById("password").value;
 
-        window.location.href="/admin.html";
-    }
-    else{
+            try {
 
-        alert("Invalid Username or Password");
-    }
-});
+                const response =
+                    await fetch(
+                        ADMIN_LOGIN_API,
+                        {
+
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+
+                                username: username,
+
+                                password: password
+                            })
+                        }
+                    );
+
+                const result =
+                    await response.text();
+
+                if (result === "SUCCESS") {
+
+                    sessionStorage.setItem(
+                        "admin",
+                        "true"
+                    );
+
+                    window.location.href =
+                        "/admin.html";
+
+                } else {
+
+                    alert(
+                        "Invalid Username or Password"
+                    );
+                }
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Server error during login."
+                );
+            }
+        }
+    );
+}
