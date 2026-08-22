@@ -1,13 +1,42 @@
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+// ======================================================
+// CART.JS
+// ======================================================
 
-const container = document.getElementById("cartContainer");
-const totalPrice = document.getElementById("totalPrice");
+function getCart() {
+
+    return JSON.parse(
+        localStorage.getItem("cart")
+    ) || [];
+}
+
+
+// ======================================================
+// DISPLAY CART
+// ======================================================
 
 function displayCart() {
 
+    const container =
+        document.getElementById(
+            "cartContainer"
+        );
+
+    const totalPrice =
+        document.getElementById(
+            "totalPrice"
+        );
+
+    if (!container || !totalPrice) {
+        return;
+    }
+
+    const cart = getCart();
+
     if (cart.length === 0) {
 
-        container.innerHTML = "<h3>Your cart is empty.</h3>";
+        container.innerHTML =
+            "<h3>Your cart is empty.</h3>";
+
         totalPrice.innerHTML = "";
 
         return;
@@ -17,61 +46,129 @@ function displayCart() {
 
     let total = 0;
 
-    cart.forEach((item, index) => {
+    cart.forEach(
+        (item, index) => {
 
-        total += item.price * item.quantity;
+            total +=
+                item.price *
+                item.quantity;
 
-        container.innerHTML += `
-            <div class="product-card">
+            container.innerHTML += `
 
-                <img src="${item.imageUrl}" alt="${item.name}">
+                <div class="product-card">
 
-                <h3>${item.name}</h3>
+                    <img
+                        src="${item.imageUrl}"
+                        alt="${item.name}"
+                    >
 
-                <p>₹${item.price}</p>
+                    <h3>
+                        ${item.name}
+                    </h3>
 
-                <p>Quantity: ${item.quantity}</p>
+                    <p>
+                        ₹${item.price}
+                    </p>
 
-                <button onclick="increase(${index})">+</button>
+                    <p>
+                        Quantity:
+                        ${item.quantity}
+                    </p>
 
-                <button onclick="decrease(${index})">-</button>
+                    <button
+                        onclick="increase(${index})">
+                        +
+                    </button>
 
-                <button onclick="removeItem(${index})">
-                    Remove
-                </button>
+                    <button
+                        onclick="decrease(${index})">
+                        -
+                    </button>
 
-            </div>
-        `;
-    });
+                    <button
+                        onclick="removeItem(${index})">
+                        Remove
+                    </button>
 
-    totalPrice.innerHTML = `Total: ₹${total}`;
+                </div>
+            `;
+        }
+    );
 
-    localStorage.setItem("cart", JSON.stringify(cart));
+    totalPrice.innerHTML =
+        `Total: ₹${total}`;
 }
+
+
+// ======================================================
+// INCREASE
+// ======================================================
 
 function increase(index) {
 
+    const cart = getCart();
+
     cart[index].quantity++;
+
+    localStorage.setItem(
+        "cart",
+        JSON.stringify(cart)
+    );
 
     displayCart();
 }
 
+
+// ======================================================
+// DECREASE
+// ======================================================
+
 function decrease(index) {
+
+    const cart = getCart();
 
     if (cart[index].quantity > 1) {
 
         cart[index].quantity--;
-
     }
+
+    localStorage.setItem(
+        "cart",
+        JSON.stringify(cart)
+    );
 
     displayCart();
 }
+
+
+// ======================================================
+// REMOVE
+// ======================================================
 
 function removeItem(index) {
 
+    const cart = getCart();
+
     cart.splice(index, 1);
+
+    localStorage.setItem(
+        "cart",
+        JSON.stringify(cart)
+    );
 
     displayCart();
 }
 
-displayCart();
+
+// ======================================================
+// INITIAL LOAD
+// ======================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        displayCart();
+
+    }
+);

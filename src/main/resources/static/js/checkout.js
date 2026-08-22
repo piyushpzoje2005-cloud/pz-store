@@ -1,57 +1,162 @@
-const cart = JSON.parse(localStorage.getItem("cart")) || [];
+// ======================================================
+// CHECKOUT.JS
+// ======================================================
 
-let total = 0;
+const ORDER_API = "/api/orders";
 
-cart.forEach(item => {
-    total += item.price * item.quantity;
-});
 
-document.getElementById("orderTotal").innerText = `Total: ₹${total}`;
+// ======================================================
+// CALCULATE TOTAL
+// ======================================================
 
-document.getElementById("checkoutForm").addEventListener("submit", async function (e) {
+function calculateOrderTotal() {
 
-    e.preventDefault();
+    const cart =
+        JSON.parse(
+            localStorage.getItem("cart")
+        ) || [];
 
-    const orderData = {
-        fullName: document.getElementById("fullName").value,
-        phone: document.getElementById("phone").value,
-        address: document.getElementById("address").value,
-        city: document.getElementById("city").value,
-        state: document.getElementById("state").value,
-        pincode: document.getElementById("pincode").value,
-        totalAmount: total
-    };
+    let total = 0;
 
-    try {
+    cart.forEach(item => {
 
-        const response = await fetch("http://localhost:8080/api/orders", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(orderData)
-        });
+        total +=
+            item.price *
+            item.quantity;
 
-        if (response.ok) {
+    });
 
-            alert("Order placed successfully!");
+    return total;
+}
 
-            localStorage.removeItem("cart");
 
-            window.location.href = "/index.html";
+// ======================================================
+// SHOW TOTAL
+// ======================================================
 
-        } else {
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-            alert("Failed to place order.");
+        const orderTotal =
+            document.getElementById(
+                "orderTotal"
+            );
 
+        if (orderTotal) {
+
+            orderTotal.innerText =
+                `Total: ₹${calculateOrderTotal()}`;
         }
 
-    } catch (error) {
-
-        console.error(error);
-
-        alert("Server error.");
-
     }
+);
 
-});
+
+// ======================================================
+// CHECKOUT FORM
+// ======================================================
+
+const checkoutForm =
+    document.getElementById(
+        "checkoutForm"
+    );
+
+if (checkoutForm) {
+
+    checkoutForm.addEventListener(
+        "submit",
+        async function (e) {
+
+            e.preventDefault();
+
+            const total =
+                calculateOrderTotal();
+
+            const orderData = {
+
+                fullName:
+                document.getElementById(
+                    "fullName"
+                ).value,
+
+                phone:
+                document.getElementById(
+                    "phone"
+                ).value,
+
+                address:
+                document.getElementById(
+                    "address"
+                ).value,
+
+                city:
+                document.getElementById(
+                    "city"
+                ).value,
+
+                state:
+                document.getElementById(
+                    "state"
+                ).value,
+
+                pincode:
+                document.getElementById(
+                    "pincode"
+                ).value,
+
+                totalAmount: total
+            };
+
+            try {
+
+                const response =
+                    await fetch(
+                        ORDER_API,
+                        {
+
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    orderData
+                                )
+                        }
+                    );
+
+                if (response.ok) {
+
+                    alert(
+                        "Order placed successfully!"
+                    );
+
+                    localStorage.removeItem(
+                        "cart"
+                    );
+
+                    window.location.href =
+                        "/index.html";
+
+                } else {
+
+                    alert(
+                        "Failed to place order."
+                    );
+                }
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Server error."
+                );
+            }
+        }
+    );
+}
