@@ -1,77 +1,28 @@
-// ======================================================
-// ADMIN LOGIN
-// ======================================================
+document.getElementById("loginForm").addEventListener("submit", async(e)=>{
 
-const ADMIN_LOGIN_API = "/api/admin/login";
+    e.preventDefault();
 
-const loginForm =
-    document.getElementById("loginForm");
+    const response=await fetch("http://localhost:8080/api/admin/login",{
 
-if (loginForm) {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
 
-    loginForm.addEventListener(
-        "submit",
-        async function (e) {
+            username:document.getElementById("username").value,
+            password:document.getElementById("password").value
+        })
+    });
 
-            e.preventDefault();
+    const result=await response.text();
 
-            const username =
-                document.getElementById("username").value;
+    if(result==="SUCCESS"){
 
-            const password =
-                document.getElementById("password").value;
+        sessionStorage.setItem("admin","true");
 
-            try {
+        window.location.href="/admin.html";
+    }
+    else{
 
-                const response =
-                    await fetch(
-                        ADMIN_LOGIN_API,
-                        {
-
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body: JSON.stringify({
-
-                                username: username,
-
-                                password: password
-                            })
-                        }
-                    );
-
-                const result =
-                    await response.text();
-
-                if (result === "SUCCESS") {
-
-                    sessionStorage.setItem(
-                        "admin",
-                        "true"
-                    );
-
-                    window.location.href =
-                        "/admin.html";
-
-                } else {
-
-                    alert(
-                        "Invalid Username or Password"
-                    );
-                }
-
-            } catch (error) {
-
-                console.error(error);
-
-                alert(
-                    "Server error during login."
-                );
-            }
-        }
-    );
-}
+        alert("Invalid Username or Password");
+    }
+});
