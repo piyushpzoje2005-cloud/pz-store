@@ -363,79 +363,59 @@ async function saveProduct() {
 
 async function loadOrders() {
 
-    const container =
-        document.getElementById("ordersContainer");
+    const container = document.getElementById("ordersContainer");
 
     if (!container) return;
 
     try {
 
-        const response =
-            await fetch(ORDER_API);
+        const response = await fetch(ORDER_API);
 
         if (!response.ok) {
             throw new Error("Failed to load orders");
         }
 
-        const orders =
-            await response.json();
+        const orders = await response.json();
 
         container.innerHTML = "";
 
         if (orders.length === 0) {
-
-            container.innerHTML =
-                "<p>No orders available.</p>";
-
+            container.innerHTML = "<p>No orders available.</p>";
             return;
         }
 
         orders.forEach(order => {
 
-            container.innerHTML += `
+            const customer = order.customer || {};
 
+            container.innerHTML += `
                 <div class="product-card">
 
                     <h3>Order #${order.id}</h3>
 
-                    <p>
-                        <strong>Name:</strong>
-                        ${order.customer.fullName}
-                    </p>
+                    <p><strong>Name:</strong> ${customer.fullName || "-"}</p>
 
-                    <p>
-                        <strong>Phone:</strong>
-                        ${order.customer.phone}
-                    </p>
+                    <p><strong>Phone:</strong> ${customer.phone || "-"}</p>
 
-                    <p>
-                        <strong>City:</strong>
-                        ${order.customer.city}
-                    </p>
+                    <p><strong>Address:</strong> ${customer.address || "-"}</p>
 
-                    <p>
-                        <strong>Total:</strong>
-                        ₹${order.totalAmount}
-                    </p>
+                    <p><strong>City:</strong> ${customer.city || "-"}</p>
 
-                    <p>
-                        <strong>Status:</strong>
-                        ${order.orderStatus}
-                    </p>
+                    <p><strong>State:</strong> ${customer.state || "-"}</p>
 
-                    <button
-                        onclick="changeStatus(
-                            ${order.id},
-                            'Shipped'
-                        )">
+                    <p><strong>PIN Code:</strong> ${customer.pincode || "-"}</p>
+
+                    <p><strong>Total:</strong> ₹${order.totalAmount}</p>
+
+                    <p><strong>Payment:</strong> ${order.paymentMethod || "COD"}</p>
+
+                    <p><strong>Status:</strong> ${order.orderStatus}</p>
+
+                    <button onclick="changeStatus(${order.id}, 'Shipped')">
                         Mark Shipped
                     </button>
 
-                    <button
-                        onclick="changeStatus(
-                            ${order.id},
-                            'Delivered'
-                        )">
+                    <button onclick="changeStatus(${order.id}, 'Delivered')">
                         Mark Delivered
                     </button>
 
@@ -447,11 +427,9 @@ async function loadOrders() {
 
         console.error(error);
 
-        container.innerHTML =
-            "<p>Failed to load orders.</p>";
+        container.innerHTML = "<p>Failed to load orders.</p>";
     }
 }
-
 
 // ----------------------
 // Change Order Status
